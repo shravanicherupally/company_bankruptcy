@@ -84,6 +84,22 @@
             color: white;
         }
 
+        .input-summary {
+            margin-top: 1.5rem;
+            background: #f0f0f0;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .input-summary ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .input-summary li {
+            padding: 0.3rem 0;
+        }
+
         .footer {
             text-align: center;
             margin-top: 2rem;
@@ -116,10 +132,21 @@
         <button type="submit">Predict</button>
     </form>
 
+    <!-- Show the inputs received and the prediction -->
     {% if prediction %}
-        <div class="result {{ 'failed' if prediction == 'Failed' else 'alive' }}">
-            Prediction for <strong>{{ company }}</strong>: {{ prediction }}
-        </div>
+    <div class="input-summary">
+        <p><strong>Your Input:</strong></p>
+        <ul>
+            <li>Company: {{ company }}</li>
+            <li>X1 – Current Ratio: {{ x1 }}</li>
+            <li>X4 – Total Asset Turnover: {{ x4 }}</li>
+            <li>X6 – Retained Earnings to Total Assets: {{ x6 }}</li>
+            <li>X10 – Net Income to Total Assets: {{ x10 }}</li>
+        </ul>
+    </div>
+    <div class="result {{ 'failed' if prediction == 'Failed' else 'alive' }}">
+        Prediction for <strong>{{ company }}</strong>: {{ prediction }}
+    </div>
     {% endif %}
 </div>
 

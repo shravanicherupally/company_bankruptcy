@@ -5,49 +5,45 @@ import os
 
 app = Flask(__name__)
 
-# Load trained model and scaler
-model_path = os.path.join("model", "model.pkl")
-model = joblib.load(model_path)
+# Load the trained model and scaler
+model = joblib.load(os.path.join("model", "model.pkl"))
+scaler = joblib.load(os.path.join("model", "scaler.pkl"))
 
-scaler_path = os.path.join("model", "scaler.pkl")
-scaler = joblib.load(scaler_path)
-
-@app.route('/')
+@app.route("/", methods=["GET", "POST"])
 def home():
-    return render_template('index.html')
+    prediction = None
+    inputs = {}
 
-@app.route('/predict', methods=["POST"])
-def predict():
-    try:
-        # Retrieve form inputs
-        company = request.form['company']
-        x1 = float(request.form['x1'])     # Current Ratio
-        x4 = float(request.form['x4'])     # Total Asset Turnover
-        x6 = float(request.form['x6'])     # Retained Earnings to Total Assets
-        x10 = float(request.form['x10'])   # Net Income to Total Assets
+    if request.method == "POST":
+        try:
+            # Get inputs
+            company_name = request.form.get("company_name")
+            x1 = float(request.form.get("x1"))
+            x4 = float(request.form.get("x4"))
+            x6 = float(request.form.get("x6"))
+            x10 = float(request.form.get("x10"))
 
-        # Prepare feature array and scale it
-        input_features = np.array([[x1, x4, x6, x10]])
-        input_scaled = scaler.transform(input_features)
+            # Store inputs for UI rendering
+            inputs = {
+                "company_name": company_name,
+                "x1": x1,
+                "x4": x4,
+                "x6": x6,
+                "x10": x10
+            }
 
-        # Make prediction
-        prediction = model.predict(input_scaled)[0]
-        prediction_label = "Failed" if prediction == 1 else "Alive"
+            # Format and scale input
+            features = np.array([[x1, x4, x6, x10]])
+            features_scaled = scaler.transform(features)
 
-        # Print details for debugging
-        print("Prediction Details:")
-        print(f"Company: {company}")
-        print(f"X1: {x1}, X4: {x4}, X6: {x6}, X10: {x10}")
-        print(f"Prediction: {prediction_label}")
+            # Predict
+            result = model.predict(features_scaled)[0]
+            prediction = "Failed" if result == 1 else "Alive"
 
-        # Pass all values back to template
-        return render_template('index.html',
-                               prediction=prediction_label,
-                               company=company,
-                               x1=x1, x4=x4, x6=x6, x10=x10)
+        except Exception as e:
+            prediction = f"Error: {str(e)}"
 
-    except Exception as e:
-        return f"❌ Error: {str(e)}"
+    return render_template("index.html", prediction=prediction, inputs=inputs)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
